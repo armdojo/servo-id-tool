@@ -77,6 +77,45 @@ const bus = (opt, ...ids) => { const m = new MockLink(opt); ids.forEach((i) => m
     await n.run();
     check('two servos plugged at once → asks for one', keys.includes('collision'), keys.join(',')); }
 
+  // ---- HD-1910 / Microduck (2026-11-15) ----
+  const hd = (id, opt) => new MockServo(id, Object.assign({ model: 7946, maxVolt: 100, volt: 46, mode: 4, unload: 4 }, opt || {}));
+  { const m = new MockLink(); m.add(hd(1)); const b = new Bus(m);
+    const s = await b.identify(1);
+    check('identify HD-1910 (model 7946)', s.model === 'HD-1910' && s.known && s.family === 'sts' && s.mode === 4 && s.unload === 4, JSON.stringify(s));
+    await b.write(1, core.REG.UNLOAD, [13]); m.servo(1).powerCycle();
+    check('mock: a write while EEPROM is locked is lost at power-off', m.servo(1).mem[19] === 4);
+    const v = await b.setUnload(s, core.UNLOAD.CURRENT | core.UNLOAD.VOLTAGE);
+    check('protection on: 4 → 13 (heat kept), locked again', v === 13 && m.servo(1).mem[55] === 1);
+    m.servo(1).powerCycle();
+    check('protection survives power-off', m.servo(1).mem[19] === 13);
+    check('protection already on → no EEPROM write', (await b.setUnload(s, 9)) === 13);
+    await b.changeId(s, 10); m.servos[0].powerCycle();
+    check('new ID survives power-off', m.servos[0].id === 10 && await b.ping(10)); }
+
+  { const m = new MockLink(); m.add(new MockServo(1, { model: 0x0405 })); const b = new Bus(m);
+    const s = await b.identify(1);
+    check('protection refused on SCS servos', s.family === 'scs' && await throws('failed', () => b.setUnload(s, 9))); }
+
+  { const m = new DemoBench(); m.setModel(7946); const b = new Bus(m);
+    const got = [];
+    const n = new Numberer(b, { ids: [10, 11, 20], unloadBits: 9 }, null, (old, v, next) => got.push([v.id, v.unload, v.protect, v.model, next]));
+    const t0 = Date.now(); await n.run();
+    check('Microduck list numbering 10, 11, 20 with protection', JSON.stringify(got) === '[[10,13,true,"HD-1910",11],[11,13,true,"HD-1910",20],[20,13,true,"HD-1910",null]]',
+      JSON.stringify(got) + ` in ${((Date.now() - t0) / 1000).toFixed(1)} s`); }
+
+  { const m = new MockLink(); m.add(hd(1)); const b = new Bus(m);
+    const n = new Numberer(b, { next: 3, end: 3 }, null, () => n.stop()); await n.run();
+    check('range numbering leaves protection alone by default', m.servos[0].id === 3 && m.servos[0].mem[19] === 4); }
+
+  check('Microduck ID list', JSON.stringify(core.MICRODUCK_IDS) === '[10,11,12,13,14,20,21,22,23,24,30,31,32,33,34]');
+
+  { const m = new MockLink(); m.add(hd(1, { volt: 74 })); const b = new Bus(m); m.servo(1).pos = 120;
+    const p = await b.center(1);
+    const goals = m.sent.filter((x) => x[4] === 3 && x[5] === 42).map((x) => x[6] | (x[7] << 8));
+    const jumps = goals.slice(1).map((g, i) => Math.abs(g - goals[i]));
+    check('center steps the goal ≤ 20 per write (HD-1910 PD mode)', Math.abs(p - 2048) <= 8 && goals[goals.length - 1] === 2048 && Math.max(...jumps) <= 20,
+      `${goals.length} goal writes, max step ${Math.max(...jumps)}, end ${p}`); }
+
   console.log(fail.length ? `FAILED ${fail.length}: ${fail.join('; ')}` : `ALL PASS (${pass})`);
   process.exit(fail.length ? 1 : 0);
 })();

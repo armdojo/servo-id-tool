@@ -3,7 +3,8 @@
 (function () {
   'use strict';
   const C = window.ArmDojoServoCore, M = window.ArmDojoServoMock, I18N = window.ArmDojoServoI18n || {};
-  const { Bus, Numberer, BusError, compressIds, sleep, now } = C;
+  const { Bus, Numberer, BusError, compressIds, sleep, now, UNLOAD, MICRODUCK_IDS } = C;
+  const PROTECT_BITS = UNLOAD.CURRENT | UNLOAD.VOLTAGE;
 
   // ---------------- Web Serial link ----------------
   class WebSerialLink {
@@ -97,6 +98,10 @@
 #armdojo-servo-tool pre{white-space:pre-wrap;max-height:200px;overflow:auto;background:var(--bg);padding:8px;border-radius:8px}
 #armdojo-servo-tool .bar{height:6px;background:#e6ebf2;border-radius:3px;overflow:hidden;margin-top:8px}
 #armdojo-servo-tool .bar i{display:block;height:100%;background:var(--a);width:0}
+#armdojo-servo-tool button.pre.on{background:var(--a);color:#fff;border-color:var(--a)}
+#armdojo-servo-tool .duck{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 14px;margin-top:6px}
+#armdojo-servo-tool .duck span b{display:inline-block;min-width:26px}
+@media (max-width:600px){#armdojo-servo-tool .duck{grid-template-columns:1fr}}
 @media (max-width:600px){#armdojo-servo-tool .big{flex-basis:64px;height:64px;font-size:28px}}`;
   const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
 
@@ -112,12 +117,14 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
 <div class="card"><h3>2. ${esc(t('step_number'))}</h3>
   <div class="row"><label>${esc(t('start_id'))} <input type="number" min="0" max="253" value="1" data-r="from"></label>
     <label>${esc(t('last_id'))} <input type="number" min="0" max="253" value="6" data-r="to"></label>
-    <span class="muted">${esc(t('presets'))}</span><button class="pre" data-p="1-6">1–6</button><button class="pre" data-p="1-12">1–12</button><button class="pre" data-p="1-15">1–15</button><button class="pre" data-p="1-18">1–18</button></div>
+    <span class="muted">${esc(t('presets'))}</span><button class="pre" data-p="1-6">1–6</button><button class="pre" data-p="1-12">1–12</button><button class="pre" data-p="1-15">1–15</button><button class="pre" data-p="1-18">1–18</button><button class="pre" data-p="duck">${esc(t('preset_duck'))}</button></div>
+  <div class="note" data-r="ducknote" hidden>${esc(t('duck_note'))}<div class="duck">${[10, 20, 30].map((g) => `<div>${[0, 1, 2, 3, 4].map((k) => `<span><b>${g + k}</b> ${esc(t('j' + (g + k)))}</span>`).join('<br>')}</div>`).join('')}</div></div>
   <div class="row" style="margin-top:8px"><label><input type="checkbox" checked data-r="force1m"> ${esc(t('force_1m'))}</label>
+    <label><input type="checkbox" data-r="protect"> ${esc(t('protect'))}</label>
     <label><input type="checkbox" checked data-r="speak"> ${esc(t('speak'))}</label></div>
   <div class="note">${esc(t('one_at_a_time'))}</div>
   <div class="row"><button data-r="start" disabled>${esc(t('btn_start'))}</button><button class="sec" data-r="stop" hidden>${esc(t('btn_stop'))}</button></div>
-  <table data-r="table" hidden><thead><tr><th>${esc(t('col_new'))}</th><th>${esc(t('col_was'))}</th><th>${esc(t('col_model'))}</th><th>${esc(t('col_supply'))}</th></tr></thead><tbody data-r="rows"></tbody></table></div>
+  <table data-r="table" hidden><thead><tr><th>${esc(t('col_new'))}</th><th>${esc(t('col_was'))}</th><th>${esc(t('col_model'))}</th><th>${esc(t('col_supply'))}</th><th>${esc(t('col_prot'))}</th></tr></thead><tbody data-r="rows"></tbody></table></div>
 <div class="card"><h3>3. ${esc(t('step_check'))}</h3><p class="muted" style="margin:0 0 8px">${esc(t('check_hint'))}</p>
   <div class="row"><button data-r="check" disabled>${esc(t('btn_check'))}</button></div><div data-r="chain" style="margin-top:8px"></div></div>
 <div class="card"><h3>${esc(t('step_center'))}</h3><p class="muted" style="margin:0 0 8px">${esc(t('center_hint'))}</p>
@@ -126,8 +133,10 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
   const $ = (r) => root.querySelector(`[data-r="${r}"]`);
 
   // ---------------- state ----------------
-  let link = null, bus = null, numberer = null, busy = false, held = null, lastNumbered = null;
+  let link = null, bus = null, numberer = null, busy = false, held = null, lastNumbered = null, duckMode = false;
   const done = new Set();
+  const joint = (n) => (duckMode && MICRODUCK_IDS.includes(n) ? t('j' + n) : '');
+  const prot = (s) => (s && s.unload != null ? t('prot_cell', { oc: s.unload & UNLOAD.CURRENT ? '✓' : '✗', ov: s.unload & UNLOAD.VOLTAGE ? '✓' : '✗' }) : '—');
 
   const log = (m) => { const p = $('log'); p.textContent += `${new Date().toLocaleTimeString()}  ${m}\n`; p.scrollTop = p.scrollHeight; };
   function status(phase, big, msg, det) {
@@ -199,7 +208,16 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
     if (link) await link.close(); link = null; bus = null;
     $('port').textContent = ''; status('', 'ID', t('disconnected'), ''); refresh();
   };
-  root.querySelectorAll('[data-p]').forEach((b) => { b.onclick = () => { const [a, z] = b.dataset.p.split('-'); $('from').value = a; $('to').value = z; }; });
+  root.querySelectorAll('[data-p]').forEach((b) => {
+    b.onclick = () => {
+      duckMode = b.dataset.p === 'duck';
+      const [a, z] = duckMode ? [MICRODUCK_IDS[0], MICRODUCK_IDS[MICRODUCK_IDS.length - 1]] : b.dataset.p.split('-');
+      $('from').value = a; $('to').value = z;
+      if (duckMode) $('protect').checked = true;
+      $('ducknote').hidden = !duckMode;
+      root.querySelectorAll('[data-p]').forEach((x) => x.classList.toggle('on', x === b && duckMode));
+    };
+  });
 
   // ---------------- numbering ----------------
   const MSG = {
@@ -216,21 +234,27 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
   };
   $('start').onclick = async () => {
     const from = parseInt($('from').value, 10), to = parseInt($('to').value, 10);
-    if (!(from >= 0 && to <= 253 && from <= to)) { status('error', '!', t('bad_range'), ''); return; }
+    const ids = duckMode ? MICRODUCK_IDS.filter((id) => id >= from && id <= to) : null;
+    if (!(from >= 0 && to <= 253 && from <= to) || (ids && !ids.length)) { status('error', '!', t('bad_range'), ''); return; }
     if (held) { try { await bus.release(held); } catch (_) {} held = null; }
-    numberer = new Numberer(bus, { next: from, end: to, force1M: $('force1m').checked, done, lastNumbered }, (s) => {
-      const [m, d] = (MSG[s.key] || (() => [s.key, '']))(s.args || {});
+    if (demo && link.setModel) link.setModel(duckMode ? 7946 : null);
+    numberer = new Numberer(bus, { next: from, end: to, ids, unloadBits: $('protect').checked ? PROTECT_BITS : 0, force1M: $('force1m').checked, done, lastNumbered }, (s) => {
+      const a = s.args || {};
+      const [m, d] = (MSG[s.key] || (() => [s.key, '']))(a);
+      const j = s.phase !== 'finished' && a.n != null ? joint(a.n) : '';
+      const p = s.key.startsWith('done') && s.servo && s.servo.protect != null ? t(s.servo.protect ? 'protect_done' : 'protect_skipped') : '';
       const extra = s.servo ? servoLine(s.servo) : '';
-      status(s.phase, s.big, m, [d, extra].filter(Boolean).join(' · '));
+      status(s.phase, s.big, m, [j ? t('joint_is', { n: a.n, joint: j }) : '', d, p, extra].filter(Boolean).join(' · '));
       if (s.key === 'io_lost') lost();
     }, (old, v, next) => {
       lastNumbered = { id: v.id, baud: v.baud };
       $('table').hidden = false;
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td><b>${v.id}</b></td><td>${old}</td><td>${esc(v.model)}</td><td>${v.voltage != null ? v1(v.voltage) + ' V' : ''}</td>`;
+      const j = joint(v.id);
+      tr.innerHTML = `<td><b>${v.id}</b>${j ? ' ' + esc(j) : ''}</td><td>${old}</td><td>${esc(v.model)}</td><td>${v.voltage != null ? v1(v.voltage) + ' V' : ''}</td><td>${esc(prot(v))}</td>`;
       $('rows').prepend(tr);
-      $('from').value = next;
-      say(v.id); log(`ID ${old} → ${v.id} (${v.model}, ${v.voltage} V)`);
+      $('from').value = next != null ? next : v.id + 1;
+      say(v.id); log(`ID ${old} → ${v.id} (${v.model}, ${v.voltage} V, protection register ${v.unload})`);
     });
     refresh();
     const n = numberer;
@@ -248,11 +272,19 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
     const r = await bus.scan((p) => { $('bar').firstChild.style.width = Math.round(p * 100) + '%'; });
     $('bar').hidden = true;
     const rows = [];
-    for (const id of r.found) { let s = null; try { s = await bus.identify(id); } catch (_) {} rows.push(`<tr><td><b>${id}</b></td><td>${esc(s ? s.model : '?')}</td><td>${s && s.voltage != null ? v1(s.voltage) + ' V' : ''}</td></tr>`); }
-    const from = parseInt($('from').value, 10) || 1, to = parseInt($('to').value, 10) || 0;
-    const lo = Math.min(from, ...(r.found.length ? r.found : [from])), hi = Math.max(to, ...(r.found.length ? r.found : [to]));
-    const missing = []; for (let i = Math.max(lo, 1); i <= hi; i++) if (!r.found.includes(i) && !r.garbled.includes(i)) missing.push(i);
-    let html = r.found.length ? `<p><b>${esc(t('found', { n: r.found.length, ids: compressIds(r.found) }))}</b></p><table><thead><tr><th>ID</th><th>${esc(t('col_model'))}</th><th>${esc(t('col_supply'))}</th></tr></thead><tbody>${rows.join('')}</tbody></table>` : `<p><b>${esc(t('none_found'))}</b></p>`;
+    for (const id of r.found) {
+      let s = null; try { s = await bus.identify(id); } catch (_) {}
+      const j = joint(id);
+      rows.push(`<tr><td><b>${id}</b>${j ? ' ' + esc(j) : ''}</td><td>${esc(s ? s.model : '?')}</td><td>${s && s.voltage != null ? v1(s.voltage) + ' V' : ''}</td><td>${esc(prot(s))}</td></tr>`);
+    }
+    const missing = [];
+    if (duckMode) { for (const i of MICRODUCK_IDS) if (!r.found.includes(i) && !r.garbled.includes(i)) missing.push(i); }
+    else {
+      const from = parseInt($('from').value, 10) || 1, to = parseInt($('to').value, 10) || 0;
+      const lo = Math.min(from, ...(r.found.length ? r.found : [from])), hi = Math.max(to, ...(r.found.length ? r.found : [to]));
+      for (let i = Math.max(lo, 1); i <= hi; i++) if (!r.found.includes(i) && !r.garbled.includes(i)) missing.push(i);
+    }
+    let html = r.found.length ? `<p><b>${esc(t('found', { n: r.found.length, ids: compressIds(r.found) }))}</b></p><table><thead><tr><th>ID</th><th>${esc(t('col_model'))}</th><th>${esc(t('col_supply'))}</th><th>${esc(t('col_prot'))}</th></tr></thead><tbody>${rows.join('')}</tbody></table>` : `<p><b>${esc(t('none_found'))}</b></p>`;
     if (r.garbled.length) html += `<p style="color:#c62828"><b>${esc(t('duplicates', { ids: compressIds(r.garbled) }))}</b></p>`;
     if (missing.length && r.found.length) html += `<p style="color:#c77700">${esc(t('missing', { ids: compressIds(missing) }))}</p>`;
     $('chain').innerHTML = html;

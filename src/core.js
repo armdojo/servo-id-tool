@@ -1,12 +1,16 @@
 /* ArmDojo Servo ID tool — protocol, bus and numbering flow. No browser APIs here (runs in Node for the tests).
- * Same flow as our native Mac and Android servo tools, verified there on real STS3215 servos.
+ * Same flow as our native Mac and Android servo tools, verified there on real STS3215 servos; HD-1910 verified on a real servo 2026-11-15.
  * Packet: FF FF ID LEN INSTR PARAMS… CHK,  LEN = params + 2,  CHK = ~(ID + LEN + INSTR + params) & 0xFF.
  * Link interface: { baud, setBaud(b), flush(), write(Uint8Array), read(arr, want, deadlineMs) } (async where it waits). */
 (function (root) {
   'use strict';
   const BROADCAST = 0xFE, PING = 0x01, READ = 0x02, WRITE = 0x03;
-  const REG = { FW: 0, MODEL: 3, ID: 5, BAUD: 6, MAX_ANGLE: 11, MAX_VOLT: 14, TORQUE: 40, ACC: 41, GOAL: 42,
+  const REG = { FW: 0, MODEL: 3, ID: 5, BAUD: 6, MAX_ANGLE: 11, MAX_VOLT: 14, UNLOAD: 19, MODE: 33, TORQUE: 40, ACC: 41, GOAL: 42,
     TORQUE_LIMIT: 48, LOCK: 55, LOCK_SCS: 48, POS: 56, VOLT: 62, TEMP: 63 };
+  /** Unload-condition bits (register 19, STS family): the servo cuts torque when one trips. */
+  const UNLOAD = { VOLTAGE: 1, ENCODER: 2, HEAT: 4, CURRENT: 8, OVERLOAD: 32 };
+  /** Microduck joint IDs (official runtime duck-control/src/model.rs, used by the community replicas). */
+  const MICRODUCK_IDS = [10, 11, 12, 13, 14, 20, 21, 22, 23, 24, 30, 31, 32, 33, 34];
   const SCAN_BAUDS = [1000000, 500000, 250000, 115200, 57600, 38400, 128000, 76800];
   const BAUD_INDEX = { 1000000: 0, 500000: 1, 250000: 2, 128000: 3, 115200: 4, 76800: 5, 57600: 6, 38400: 7 };
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -117,7 +121,7 @@
     }
 
     async identify(id) {
-      const s = { id, baud: this.baud, modelRaw: 0, model: '?', family: 'sts', known: false, fw: '', maxVolt: null, voltage: null, temp: null };
+      const s = { id, baud: this.baud, modelRaw: 0, model: '?', family: 'sts', known: false, fw: '', maxVolt: null, voltage: null, temp: null, unload: null, mode: null };
       const fw = await this.read(id, REG.FW, 2);
       s.fw = fw[0] + '.' + fw[1];
       s.modelRaw = await this.read16(id, REG.MODEL);
@@ -125,6 +129,7 @@
       if (s.modelRaw === 777) { s.model = 'STS3215 ' + (s.maxVolt >= 120 ? '(12 V)' : '(7.4 V)'); s.known = true; }
       else if (s.modelRaw === 2825) { s.model = 'STS3250 (12 V)'; s.known = true; }
       else if (s.modelRaw === 0x0405) { s.model = 'SCS0009'; s.family = 'scs'; s.known = true; }
+      else if (s.modelRaw === 7946) { s.model = 'HD-1910'; s.known = true; }   // HD-1910-C001, fw 3.46, read on a real servo 2026-11-15
       else {
         s.model = 'Model ' + s.modelRaw;
         // STS: max angle 4095 little-endian (FF 0F). SCS: 1023 big-endian (03 FF).
@@ -133,6 +138,10 @@
       }
       s.voltage = (await this.read(id, REG.VOLT, 1))[0] / 10;
       s.temp = (await this.read(id, REG.TEMP, 1))[0];
+      if (s.family === 'sts') {
+        s.unload = (await this.read(id, REG.UNLOAD, 1))[0];
+        s.mode = (await this.read(id, REG.MODE, 1))[0];
+      }
       return s;
     }
 
@@ -158,6 +167,24 @@
       s.id = next;
     }
 
+    /** Switch on unload-condition bits (keeping the ones already on) so they survive power-off: unlock EEPROM, write,
+     *  lock, read back. STS family only. Returns the new register value. */
+    async setUnload(s, bits) {
+      if (s.family !== 'sts') throw new BusError('failed', 'protection settings are only for STS-family servos');
+      const cur = (await this.read(s.id, REG.UNLOAD, 1))[0], want = cur | bits;
+      if (want !== cur) {
+        await this.write(s.id, REG.LOCK, [0]);
+        await this.write(s.id, REG.UNLOAD, [want], { timeout: 300 });   // EEPROM write: the ack can take a few ms
+        await sleep(10);
+        await this.write(s.id, REG.LOCK, [1]);
+      }
+      const got = (await this.read(s.id, REG.UNLOAD, 1))[0];
+      if (got !== want) throw new BusError('failed', `protection register reads ${got}, not ${want}`);
+      if ((await this.read(s.id, REG.LOCK, 1))[0] !== 1) throw new BusError('failed', 'EEPROM did not lock: the protection may be lost at power-off');
+      s.unload = got;
+      return got;
+    }
+
     async setBaudRegister(s, b) {
       const idx = BAUD_INDEX[b];
       if (idx === undefined || b === s.baud) return;
@@ -171,23 +198,28 @@
       s.baud = b;
     }
 
-    /** Turn one STS servo to the middle (2048) slowly at 30 % torque and keep holding it. Returns the final position. */
+    /** Turn one STS servo to the middle (2048) slowly at 30 % torque and keep holding it. Returns the final position.
+     *  The goal is stepped here (≈ 35°/s) instead of relying on the speed register: HD-1910s ship in mode 4 (position PD),
+     *  which may ignore it and would jump straight to the goal. */
     async center(id, onPos) {
       const v = (await this.read(id, REG.VOLT, 1))[0] / 10;
       if (v < 6) throw new BusError('failed', 'power:' + v.toFixed(1));
-      const pos = await this.read16(id, REG.POS);
+      const pos = await this.read16(id, REG.POS) & 0x0FFF;
       const goal = (p, speed) => [10, p & 0xFF, p >> 8, 0, 0, speed & 0xFF, speed >> 8];
       await this.write(id, REG.ACC, goal(pos, 400));          // hold where it is first: the goal register may hold 0
       await this.write(id, REG.TORQUE_LIMIT, [300 & 0xFF, 300 >> 8]);
       await this.write(id, REG.TORQUE, [1]);
-      await this.write(id, REG.ACC, goal(2048, 400));          // ≈ 35°/s
       const t0 = now();
-      let p = pos;
-      while (now() - t0 < 9000) {
-        await sleep(80);
-        p = await this.read16(id, REG.POS);
+      let g = pos, p = pos;
+      while (now() - t0 < 12000) {
+        if (g !== 2048) {
+          g += Math.sign(2048 - g) * Math.min(Math.abs(2048 - g), 20);   // 20 steps per 50 ms ≈ 35°/s
+          await this.write(id, REG.GOAL, [g & 0xFF, g >> 8]);
+        }
+        await sleep(50);
+        p = await this.read16(id, REG.POS) & 0x0FFF;
         if (onPos) onPos(p);
-        if (Math.abs(p - 2048) <= 8) break;
+        if (g === 2048 && Math.abs(p - 2048) <= 8) break;
       }
       return p;
     }
@@ -195,11 +227,14 @@
     async release(id) { await this.write(id, REG.TORQUE, [0]); }
   }
 
-  /** One-at-a-time numbering: plug a servo in, it gets the next ID, unplug, repeat. Status objects carry i18n keys. */
+  /** One-at-a-time numbering: plug a servo in, it gets the next ID, unplug, repeat. Status objects carry i18n keys.
+   *  cfg.ids: the IDs to hand out in order (default next…end); cfg.unloadBits: protection bits to switch on in each servo. */
   class Numberer {
     constructor(bus, cfg, onStatus, onNumbered) {
       this.bus = bus;
-      this.cfg = Object.assign({ next: 1, end: 253, force1M: true, done: new Set(), lastNumbered: null }, cfg);
+      this.cfg = Object.assign({ next: 1, end: 253, ids: null, unloadBits: 0, force1M: true, done: new Set(), lastNumbered: null }, cfg);
+      if (!this.cfg.ids) { this.cfg.ids = []; for (let i = this.cfg.next; i <= this.cfg.end; i++) this.cfg.ids.push(i); }
+      this.queue = this.cfg.ids.slice();
       this.onStatus = onStatus || (() => {});
       this.onNumbered = onNumbered || (() => {});
       this.stopped = false;
@@ -212,29 +247,33 @@
       const c = this.cfg, b = this.bus;
       let state = c.lastNumbered ? { removal: c.lastNumbered } : { removal: null };
       let misses = 0;
-      if (c.lastNumbered) this.report({ phase: 'waiting', big: String(c.next), key: 'remove_first', args: { id: c.lastNumbered.id, n: c.next } });
+      const last = c.ids.length ? c.ids[c.ids.length - 1] : c.end;
+      if (c.lastNumbered && this.queue.length) this.report({ phase: 'waiting', big: String(this.queue[0]), key: 'remove_first', args: { id: c.lastNumbered.id, n: this.queue[0] } });
       while (!this.stopped) {
         try {
           if (!state.removal) {
-            if (c.next > c.end) { this.report({ phase: 'finished', big: '✓', key: 'finished', args: { end: c.end } }); return; }
-            this.report({ phase: 'waiting', big: String(c.next), key: 'plug_next', args: { n: c.next } });
+            if (!this.queue.length) { this.report({ phase: 'finished', big: '✓', key: 'finished', args: { end: last } }); return; }
+            this.report({ phase: 'waiting', big: String(this.queue[0]), key: 'plug_next', args: { n: this.queue[0] } });
             const f = await b.findSingle();
             if (this.stopped) return;
             if (!f) { await sleep(150); continue; }
             const s = await b.identify(f.id);
-            if (c.done.has(f.id) && f.id !== 1 && f.id !== c.next) {
+            if (c.done.has(f.id) && f.id !== 1 && f.id !== this.queue[0]) {
               this.report({ phase: 'warning', big: String(f.id), key: 'already', args: { id: f.id }, servo: s });
               state = { removal: { id: f.id, baud: s.baud } }; misses = 0;
               continue;
             }
-            const target = c.next, old = s.id;
+            const target = this.queue[0], old = s.id;
             this.report({ phase: 'working', big: String(target), key: 'writing', args: { n: target }, servo: s });
             await b.changeId(s, target);
             if (c.force1M && s.baud !== 1000000) await b.setBaudRegister(s, 1000000);
+            let protect = null;   // null: not asked · true: switched on · false: not available for this model
+            if (c.unloadBits) { protect = s.family === 'sts'; if (protect) await b.setUnload(s, c.unloadBits); }
             const v = await b.identify(target);   // fresh read-back
-            v.baud = s.baud;
-            c.done.add(target); c.next = target + 1;
-            this.onNumbered(old, v, c.next);
+            v.baud = s.baud; v.protect = protect;
+            if (protect && (v.unload & c.unloadBits) !== c.unloadBits) throw new BusError('failed', 'protection did not read back');
+            c.done.add(target); this.queue.shift(); c.next = this.queue.length ? this.queue[0] : target + 1;
+            this.onNumbered(old, v, this.queue.length ? this.queue[0] : null);
             this.report({ phase: 'success', big: String(target), key: v.known ? 'done' : 'done_new_model', args: { n: target, old }, servo: v });
             state = { removal: { id: target, baud: v.baud } }; misses = 0;
           } else {
@@ -265,7 +304,7 @@
     return parts.join(', ');
   }
 
-  const api = { BROADCAST, PING, READ, WRITE, REG, SCAN_BAUDS, BAUD_INDEX, BusError, checksum, packet, hex, Bus, Numberer, compressIds, sleep, now };
+  const api = { BROADCAST, PING, READ, WRITE, REG, UNLOAD, MICRODUCK_IDS, SCAN_BAUDS, BAUD_INDEX, BusError, checksum, packet, hex, Bus, Numberer, compressIds, sleep, now };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ArmDojoServoCore = api;
 })(typeof self !== 'undefined' ? self : this);
