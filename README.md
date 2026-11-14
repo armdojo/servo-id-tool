@@ -84,7 +84,7 @@ The code handles boards that echo what they send, resyncs after line noise, and 
 
 ```bash
 node test/test.js                  # 36 checks against simulated servos
-python3 build.py 2                 # writes dist/servo-id-tool.v2.js
+python3 build.py 3                 # writes dist/servo-id-tool.v3.js
 python3 -m http.server 8765 --bind 127.0.0.1
 # open http://localhost:8765/example.html?servo-demo=1   (demo with simulated servos)
 # open http://localhost:8765/example.html                (real board)
