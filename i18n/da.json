@@ -71,8 +71,8 @@
   "center_power_det": "Tilslut servoens strømforsyning (7,4 V eller 12 V, alt efter hvad din servo skal bruge).",
   "released": "Sluppet",
   "log": "Teknisk log (til support)",
-  "preset_duck": "Microduck",
-  "duck_note": "Microduck-led-ID'er, som HD-1910-replikaerne bruger dem. Servoerne nummereres i denne rækkefølge. Forvalget sætter også flueben ved beskyttelsen: overstrøms- og overspændingsbeskyttelse er slået fra fra fabrikken. Når alle er færdige, så sluk og tænd servoerne, og klik på »Tjek kæden« for at læse ID'er og beskyttelse tilbage.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "Led-ID'er og -navne for microduck-replica-bygget. XGO-Duck bruger de samme ID'er med benene byttet om: brug forvalget XGO-Duck til den.",
   "j10": "højre hofte, drej",
   "j11": "højre hofte, sideværts",
   "j12": "højre hofte, frem/tilbage",
@@ -93,5 +93,11 @@
   "protect_skipped": "beskyttelse ikke ændret: findes ikke på denne model",
   "col_prot": "Beskyttelse",
   "prot_cell": "strøm {oc} · spænding {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "Servoerne nummereres i denne rækkefølge. Forvalget sætter også flueben ved beskyttelsen: overstrøms- og overspændingsbeskyttelse er slået fra fra fabrikken. Når alle er færdige, så sluk og tænd servoerne, og klik på »Tjek kæden« for at læse ID'er og beskyttelse tilbage.",
+  "xgo_note": "Led-ID'er for XGO-Duck. microduck-replica bruger de samme ID'er med benene byttet om.",
+  "xg_left": "venstre ben",
+  "xg_right": "højre ben",
+  "xg_head": "hals og hoved",
+  "preset_xgo": "XGO-Duck"
 }

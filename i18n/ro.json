@@ -71,8 +71,8 @@
   "center_power_det": "Conectați sursa de alimentare a servomotorului (7,4 V sau 12 V, după cum are nevoie servomotorul).",
   "released": "Eliberat",
   "log": "Jurnal tehnic (pentru asistență)",
-  "preset_duck": "Microduck",
-  "duck_note": "ID-urile articulațiilor Microduck, așa cum le folosesc replicile cu HD-1910. Servomotoarele sunt numerotate în această ordine. Presetarea bifează și protecția: protecția la supracurent și la supratensiune este dezactivată din fabrică. Când sunt gata toate, opriți și porniți servomotoarele, apoi apăsați „Verificare lanț” pentru a citi înapoi ID-urile și protecția.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "ID-urile și numele articulațiilor replicii microduck-replica. XGO-Duck folosește aceleași ID-uri, cu picioarele inversate: pentru el alegeți presetarea XGO-Duck.",
   "j10": "șold drept, rotire",
   "j11": "șold drept, lateral",
   "j12": "șold drept, față/spate",
@@ -93,5 +93,11 @@
   "protect_skipped": "protecție neschimbată: indisponibilă la acest model",
   "col_prot": "Protecție",
   "prot_cell": "curent {oc} · tensiune {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "Servomotoarele sunt numerotate în această ordine. Presetarea bifează și protecția: protecția la supracurent și la supratensiune este dezactivată din fabrică. Când sunt gata toate, opriți și porniți servomotoarele, apoi apăsați „Verificare lanț” pentru a citi înapoi ID-urile și protecția.",
+  "xgo_note": "ID-urile articulațiilor XGO-Duck. microduck-replica folosește aceleași ID-uri, cu picioarele inversate.",
+  "xg_left": "piciorul stâng",
+  "xg_right": "piciorul drept",
+  "xg_head": "gât și cap",
+  "preset_xgo": "XGO-Duck"
 }

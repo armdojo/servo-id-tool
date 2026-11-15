@@ -71,8 +71,8 @@
   "center_power_det": "Schließen Sie das Servo-Netzteil an (7,4 V oder 12 V, je nach Servo).",
   "released": "Freigegeben",
   "log": "Technisches Protokoll (für den Support)",
-  "preset_duck": "Microduck",
-  "duck_note": "Microduck-Gelenk-IDs, wie sie die HD-1910-Nachbauten verwenden. Die Servos werden in dieser Reihenfolge nummeriert. Die Vorlage setzt auch das Häkchen beim Schutz: Überstrom- und Überspannungsschutz sind ab Werk aus. Wenn alle fertig sind, schalten Sie die Servos aus und wieder ein und klicken Sie auf „Kette prüfen“, um IDs und Schutz zurückzulesen.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "Gelenk-IDs und -namen des Nachbaus microduck-replica. XGO-Duck nutzt dieselben IDs mit vertauschten Beinen: Nehmen Sie dafür die Vorlage XGO-Duck.",
   "j10": "rechte Hüfte, Drehung",
   "j11": "rechte Hüfte, seitlich",
   "j12": "rechte Hüfte, vor/zurück",
@@ -93,5 +93,11 @@
   "protect_skipped": "Schutz nicht geändert: bei diesem Modell nicht verfügbar",
   "col_prot": "Schutz",
   "prot_cell": "Strom {oc} · Spannung {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "Die Servos werden in dieser Reihenfolge nummeriert. Die Vorlage setzt auch das Häkchen beim Schutz: Überstrom- und Überspannungsschutz sind ab Werk aus. Wenn alle fertig sind, schalten Sie die Servos aus und wieder ein und klicken Sie auf „Kette prüfen“, um IDs und Schutz zurückzulesen.",
+  "xgo_note": "Gelenk-IDs von XGO-Duck. microduck-replica nutzt dieselben IDs mit vertauschten Beinen.",
+  "xg_left": "linkes Bein",
+  "xg_right": "rechtes Bein",
+  "xg_head": "Hals und Kopf",
+  "preset_xgo": "XGO-Duck"
 }

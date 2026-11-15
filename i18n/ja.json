@@ -71,8 +71,8 @@
   "center_power_det": "サーボ用電源（サーボに合わせて 7.4 V または 12 V）を接続してください。",
   "released": "脱力しました",
   "log": "技術ログ（サポート用）",
-  "preset_duck": "Microduck",
-  "duck_note": "HD-1910 で作る Microduck レプリカの関節 ID です。この順番で番号を付けます。このプリセットは保護のチェックも入れます（過電流保護と過電圧保護は出荷時オフ）。すべて終わったら、サーボの電源を一度切って入れ直し、「チェーンを確認」を押して ID と保護設定を読み戻してください。",
+  "preset_duck": "microduck-replica",
+  "duck_note": "microduck-replica の関節 ID と関節名です。XGO-Duck は同じ ID を使いますが、左右の脚が逆です。XGO-Duck には XGO-Duck のプリセットを使ってください。",
   "j10": "右股関節・ひねり",
   "j11": "右股関節・左右",
   "j12": "右股関節・前後",
@@ -93,5 +93,11 @@
   "protect_skipped": "保護は未変更（この型番では使えません）",
   "col_prot": "保護",
   "prot_cell": "電流 {oc}・電圧 {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "この順番で番号を付けます。このプリセットは保護のチェックも入れます（過電流保護と過電圧保護は出荷時オフ）。すべて終わったら、サーボの電源を一度切って入れ直し、「チェーンを確認」を押して ID と保護設定を読み戻してください。",
+  "xgo_note": "XGO-Duck の関節 ID です。microduck-replica は同じ ID を使いますが、左右の脚が逆です。",
+  "xg_left": "左脚",
+  "xg_right": "右脚",
+  "xg_head": "首と頭",
+  "preset_xgo": "XGO-Duck"
 }

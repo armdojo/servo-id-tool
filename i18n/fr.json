@@ -71,8 +71,8 @@
   "center_power_det": "Branchez l’alimentation des servos (7,4 V ou 12 V, selon votre servo).",
   "released": "Relâché",
   "log": "Journal technique (pour le support)",
-  "preset_duck": "Microduck",
-  "duck_note": "ID des articulations du Microduck, telles qu'utilisées par les répliques à HD-1910. Les servos sont numérotés dans cet ordre. Le préréglage coche aussi la case de protection : les protections contre la surintensité et la surtension sont désactivées en usine. Une fois tous les servos faits, éteignez-les puis rallumez-les, et cliquez sur « Vérifier la chaîne » pour relire les ID et la protection.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "ID et noms des articulations de la réplique microduck-replica. XGO-Duck utilise les mêmes ID avec les jambes inversées : prenez pour lui le préréglage XGO-Duck.",
   "j10": "hanche droite, rotation",
   "j11": "hanche droite, latérale",
   "j12": "hanche droite, avant/arrière",
@@ -93,5 +93,11 @@
   "protect_skipped": "protection inchangée : non disponible sur ce modèle",
   "col_prot": "Protection",
   "prot_cell": "courant {oc} · tension {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "Les servos sont numérotés dans cet ordre. Le préréglage coche aussi la case de protection : les protections contre la surintensité et la surtension sont désactivées en usine. Une fois tous les servos faits, éteignez-les puis rallumez-les, et cliquez sur « Vérifier la chaîne » pour relire les ID et la protection.",
+  "xgo_note": "ID des articulations du XGO-Duck. microduck-replica utilise les mêmes ID avec les jambes inversées.",
+  "xg_left": "jambe gauche",
+  "xg_right": "jambe droite",
+  "xg_head": "cou et tête",
+  "preset_xgo": "XGO-Duck"
 }

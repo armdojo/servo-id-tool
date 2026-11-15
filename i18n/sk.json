@@ -71,8 +71,8 @@
   "center_power_det": "Pripojte napájací zdroj serva (7,4 V alebo 12 V podľa toho, čo vaše servo potrebuje).",
   "released": "Uvoľnené",
   "log": "Technický protokol (pre podporu)",
-  "preset_duck": "Microduck",
-  "duck_note": "ID kĺbov Microducku, ako ich používajú repliky s HD-1910. Servá sa číslujú v tomto poradí. Predvoľba zaškrtne aj ochranu: nadprúdová a prepäťová ochrana je z výroby vypnutá. Keď budú hotové všetky, vypnite a zapnite servá a kliknite na „Skontrolovať reťaz“, aby sa ID a ochrana načítali späť.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "ID a názvy kĺbov repliky microduck-replica. XGO-Duck používa rovnaké ID, ale s vymenenými nohami: preň zvoľte predvoľbu XGO-Duck.",
   "j10": "pravé bedro, otočenie",
   "j11": "pravé bedro, do strany",
   "j12": "pravé bedro, vpred/vzad",
@@ -93,5 +93,11 @@
   "protect_skipped": "ochrana nezmenená: pri tomto modeli nie je k dispozícii",
   "col_prot": "Ochrana",
   "prot_cell": "prúd {oc} · napätie {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "Servá sa číslujú v tomto poradí. Predvoľba zaškrtne aj ochranu: nadprúdová a prepäťová ochrana je z výroby vypnutá. Keď budú hotové všetky, vypnite a zapnite servá a kliknite na „Skontrolovať reťaz“, aby sa ID a ochrana načítali späť.",
+  "xgo_note": "ID kĺbov XGO-Duck. microduck-replica používa rovnaké ID, ale s vymenenými nohami.",
+  "xg_left": "ľavá noha",
+  "xg_right": "pravá noha",
+  "xg_head": "krk a hlava",
+  "preset_xgo": "XGO-Duck"
 }

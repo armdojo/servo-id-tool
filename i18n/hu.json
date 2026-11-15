@@ -71,8 +71,8 @@
   "center_power_det": "Csatlakoztassa a szervó tápegységét (7,4 V vagy 12 V, ahogy a szervó igényli).",
   "released": "Elengedve",
   "log": "Technikai napló (az ügyfélszolgálatnak)",
-  "preset_duck": "Microduck",
-  "duck_note": "A Microduck ízületeinek ID-i, ahogy a HD-1910-es replikák használják. A szervók ebben a sorrendben kapnak számot. Az előbeállítás a védelmet is bepipálja: a túláram- és túlfeszültség-védelem gyárilag ki van kapcsolva. Ha mind kész, kapcsolja ki és be a szervókat, majd kattintson a „Lánc ellenőrzése” gombra az ID-k és a védelem visszaolvasásához.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "A microduck-replica építés ízületeinek ID-i és nevei. Az XGO-Duck ugyanezeket az ID-ket használja, de felcserélt lábakkal: ahhoz válassza az XGO-Duck előbeállítást.",
   "j10": "jobb csípő, forgatás",
   "j11": "jobb csípő, oldalra",
   "j12": "jobb csípő, előre/hátra",
@@ -93,5 +93,11 @@
   "protect_skipped": "a védelem nem változott: ennél a modellnél nem érhető el",
   "col_prot": "Védelem",
   "prot_cell": "áram {oc} · feszültség {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "A szervók ebben a sorrendben kapnak számot. Az előbeállítás a védelmet is bepipálja: a túláram- és túlfeszültség-védelem gyárilag ki van kapcsolva. Ha mind kész, kapcsolja ki és be a szervókat, majd kattintson a „Lánc ellenőrzése” gombra az ID-k és a védelem visszaolvasásához.",
+  "xgo_note": "Az XGO-Duck ízületeinek ID-i. A microduck-replica ugyanezeket az ID-ket használja, de felcserélt lábakkal.",
+  "xg_left": "bal láb",
+  "xg_right": "jobb láb",
+  "xg_head": "nyak és fej",
+  "preset_xgo": "XGO-Duck"
 }

@@ -71,8 +71,8 @@
   "center_power_det": "서보 전원(서보에 맞게 7.4 V 또는 12 V)을 연결하세요.",
   "released": "토크가 해제되었습니다",
   "log": "기술 로그(지원용)",
-  "preset_duck": "Microduck",
-  "duck_note": "HD-1910으로 만드는 Microduck 레플리카의 관절 ID입니다. 이 순서대로 번호를 매깁니다. 이 프리셋은 보호 설정도 체크합니다(과전류·과전압 보호는 출고 시 꺼져 있음). 모두 끝나면 서보 전원을 껐다 켠 뒤 “체인 확인”을 눌러 ID와 보호 설정을 다시 읽으세요.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "microduck-replica의 관절 ID와 관절 이름입니다. XGO-Duck은 같은 ID를 쓰지만 좌우 다리가 반대입니다. XGO-Duck에는 XGO-Duck 프리셋을 쓰세요.",
   "j10": "오른쪽 고관절 회전",
   "j11": "오른쪽 고관절 좌우",
   "j12": "오른쪽 고관절 앞뒤",
@@ -93,5 +93,11 @@
   "protect_skipped": "보호 설정 변경 안 함: 이 모델에서는 사용할 수 없음",
   "col_prot": "보호",
   "prot_cell": "전류 {oc} · 전압 {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "이 순서대로 번호를 매깁니다. 이 프리셋은 보호 설정도 체크합니다(과전류·과전압 보호는 출고 시 꺼져 있음). 모두 끝나면 서보 전원을 껐다 켠 뒤 “체인 확인”을 눌러 ID와 보호 설정을 다시 읽으세요.",
+  "xgo_note": "XGO-Duck의 관절 ID입니다. microduck-replica는 같은 ID를 쓰지만 좌우 다리가 반대입니다.",
+  "xg_left": "왼쪽 다리",
+  "xg_right": "오른쪽 다리",
+  "xg_head": "목과 머리",
+  "preset_xgo": "XGO-Duck"
 }

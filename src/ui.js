@@ -64,6 +64,7 @@
   const lang = (root.dataset.lang || document.documentElement.lang || 'en');
   const S = Object.assign({}, I18N.en || {}, pick(lang) || {});
   const t = (k, a) => (S[k] || k).replace(/\{(\w+)\}/g, (_, n) => (a && a[n] != null ? a[n] : ''));
+  const SEP = /^ja/.test(lang) ? '' : ' ';   // between two sentences of a note (Japanese uses none)
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const v1 = (x) => { try { return Number(x).toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 }); } catch (_) { return Number(x).toFixed(1); } };
 
@@ -117,8 +118,9 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
 <div class="card"><h3>2. ${esc(t('step_number'))}</h3>
   <div class="row"><label>${esc(t('start_id'))} <input type="number" min="0" max="253" value="1" data-r="from"></label>
     <label>${esc(t('last_id'))} <input type="number" min="0" max="253" value="6" data-r="to"></label>
-    <span class="muted">${esc(t('presets'))}</span><button class="pre" data-p="1-6">1–6</button><button class="pre" data-p="1-12">1–12</button><button class="pre" data-p="1-15">1–15</button><button class="pre" data-p="1-18">1–18</button><button class="pre" data-p="duck">${esc(t('preset_duck'))}</button></div>
-  <div class="note" data-r="ducknote" hidden>${esc(t('duck_note'))}<div class="duck">${[10, 20, 30].map((g) => `<div>${[0, 1, 2, 3, 4].map((k) => `<span><b>${g + k}</b> ${esc(t('j' + (g + k)))}</span>`).join('<br>')}</div>`).join('')}</div></div>
+    <span class="muted">${esc(t('presets'))}</span><button class="pre" data-p="1-6">1–6</button><button class="pre" data-p="1-12">1–12</button><button class="pre" data-p="1-15">1–15</button><button class="pre" data-p="1-18">1–18</button><button class="pre" data-p="duck">${esc(t('preset_duck'))}</button><button class="pre" data-p="xgo">${esc(t('preset_xgo'))}</button></div>
+  <div class="note" data-r="note-duck" hidden>${esc(t('duck_note') + SEP + t('preset_tail'))}<div class="duck">${[10, 20, 30].map((g) => `<div>${[0, 1, 2, 3, 4].map((k) => `<span><b>${g + k}</b> ${esc(t('j' + (g + k)))}</span>`).join('<br>')}</div>`).join('')}</div></div>
+  <div class="note" data-r="note-xgo" hidden>${esc(t('xgo_note') + SEP + t('preset_tail'))}<div class="duck"><div><span><b>10–14</b> ${esc(t('xg_left'))}</span></div><div><span><b>20–24</b> ${esc(t('xg_right'))}</span></div><div><span><b>30–33</b> ${esc(t('xg_head'))}</span><br><span><b>34</b> ${esc(t('j34'))}</span></div></div></div>
   <div class="row" style="margin-top:8px"><label><input type="checkbox" checked data-r="force1m"> ${esc(t('force_1m'))}</label>
     <label><input type="checkbox" data-r="protect"> ${esc(t('protect'))}</label>
     <label><input type="checkbox" checked data-r="speak"> ${esc(t('speak'))}</label></div>
@@ -133,9 +135,11 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
   const $ = (r) => root.querySelector(`[data-r="${r}"]`);
 
   // ---------------- state ----------------
-  let link = null, bus = null, numberer = null, busy = false, held = null, lastNumbered = null, duckMode = false;
+  // duck: null, 'duck' (microduck-replica: 10–14 right leg) or 'xgo' (XGO-Duck: same IDs, 10–14 LEFT leg)
+  let link = null, bus = null, numberer = null, busy = false, held = null, lastNumbered = null, duck = null;
   const done = new Set();
-  const joint = (n) => (duckMode && MICRODUCK_IDS.includes(n) ? t('j' + n) : '');
+  const JOINT = { duck: (n) => t('j' + n), xgo: (n) => t(n <= 14 ? 'xg_left' : n <= 24 ? 'xg_right' : n <= 33 ? 'xg_head' : 'j34') };
+  const joint = (n) => (duck && MICRODUCK_IDS.includes(n) ? JOINT[duck](n) : '');
   const prot = (s) => (s && s.unload != null ? t('prot_cell', { oc: s.unload & UNLOAD.CURRENT ? '✓' : '✗', ov: s.unload & UNLOAD.VOLTAGE ? '✓' : '✗' }) : '—');
 
   const log = (m) => { const p = $('log'); p.textContent += `${new Date().toLocaleTimeString()}  ${m}\n`; p.scrollTop = p.scrollHeight; };
@@ -210,12 +214,12 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
   };
   root.querySelectorAll('[data-p]').forEach((b) => {
     b.onclick = () => {
-      duckMode = b.dataset.p === 'duck';
-      const [a, z] = duckMode ? [MICRODUCK_IDS[0], MICRODUCK_IDS[MICRODUCK_IDS.length - 1]] : b.dataset.p.split('-');
+      duck = b.dataset.p in JOINT ? b.dataset.p : null;
+      const [a, z] = duck ? [MICRODUCK_IDS[0], MICRODUCK_IDS[MICRODUCK_IDS.length - 1]] : b.dataset.p.split('-');
       $('from').value = a; $('to').value = z;
-      if (duckMode) $('protect').checked = true;
-      $('ducknote').hidden = !duckMode;
-      root.querySelectorAll('[data-p]').forEach((x) => x.classList.toggle('on', x === b && duckMode));
+      if (duck) $('protect').checked = true;
+      $('note-duck').hidden = duck !== 'duck'; $('note-xgo').hidden = duck !== 'xgo';
+      root.querySelectorAll('[data-p]').forEach((x) => x.classList.toggle('on', x === b && !!duck));
     };
   });
 
@@ -234,10 +238,10 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
   };
   $('start').onclick = async () => {
     const from = parseInt($('from').value, 10), to = parseInt($('to').value, 10);
-    const ids = duckMode ? MICRODUCK_IDS.filter((id) => id >= from && id <= to) : null;
+    const ids = duck ? MICRODUCK_IDS.filter((id) => id >= from && id <= to) : null;
     if (!(from >= 0 && to <= 253 && from <= to) || (ids && !ids.length)) { status('error', '!', t('bad_range'), ''); return; }
     if (held) { try { await bus.release(held); } catch (_) {} held = null; }
-    if (demo && link.setModel) link.setModel(duckMode ? 7946 : null);
+    if (demo && link.setModel) link.setModel(duck ? 7946 : null);
     numberer = new Numberer(bus, { next: from, end: to, ids, unloadBits: $('protect').checked ? PROTECT_BITS : 0, force1M: $('force1m').checked, done, lastNumbered }, (s) => {
       const a = s.args || {};
       const [m, d] = (MSG[s.key] || (() => [s.key, '']))(a);
@@ -278,7 +282,7 @@ ${supported ? '' : `<div class="note">${esc(t('unsupported'))}</div>`}
       rows.push(`<tr><td><b>${id}</b>${j ? ' ' + esc(j) : ''}</td><td>${esc(s ? s.model : '?')}</td><td>${s && s.voltage != null ? v1(s.voltage) + ' V' : ''}</td><td>${esc(prot(s))}</td></tr>`);
     }
     const missing = [];
-    if (duckMode) { for (const i of MICRODUCK_IDS) if (!r.found.includes(i) && !r.garbled.includes(i)) missing.push(i); }
+    if (duck) { for (const i of MICRODUCK_IDS) if (!r.found.includes(i) && !r.garbled.includes(i)) missing.push(i); }
     else {
       const from = parseInt($('from').value, 10) || 1, to = parseInt($('to').value, 10) || 0;
       const lo = Math.min(from, ...(r.found.length ? r.found : [from])), hi = Math.max(to, ...(r.found.length ? r.found : [to]));

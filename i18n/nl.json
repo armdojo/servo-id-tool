@@ -71,8 +71,8 @@
   "center_power_det": "Sluit de servovoeding aan (7,4 V of 12 V, afhankelijk van uw servo).",
   "released": "Losgelaten",
   "log": "Technisch logboek (voor support)",
-  "preset_duck": "Microduck",
-  "duck_note": "Microduck-gewricht-ID's, zoals de HD-1910-replica's ze gebruiken. De servo's worden in deze volgorde genummerd. De voorinstelling vinkt ook de beveiliging aan: overstroom- en overspanningsbeveiliging staan af fabriek uit. Zet daarna alle servo's uit en weer aan en klik op “Keten controleren” om de ID's en de beveiliging terug te lezen.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "Gewricht-ID's en -namen van de microduck-replica-bouw. XGO-Duck gebruikt dezelfde ID's met de benen omgewisseld: kies daarvoor de voorinstelling XGO-Duck.",
   "j10": "rechterheup, draaien",
   "j11": "rechterheup, zijwaarts",
   "j12": "rechterheup, voor/achter",
@@ -93,5 +93,11 @@
   "protect_skipped": "beveiliging niet gewijzigd: niet beschikbaar op dit model",
   "col_prot": "Beveiliging",
   "prot_cell": "stroom {oc} · spanning {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "De servo's worden in deze volgorde genummerd. De voorinstelling vinkt ook de beveiliging aan: overstroom- en overspanningsbeveiliging staan af fabriek uit. Zet daarna alle servo's uit en weer aan en klik op “Keten controleren” om de ID's en de beveiliging terug te lezen.",
+  "xgo_note": "Gewricht-ID's van XGO-Duck. microduck-replica gebruikt dezelfde ID's met de benen omgewisseld.",
+  "xg_left": "linkerbeen",
+  "xg_right": "rechterbeen",
+  "xg_head": "nek en hoofd",
+  "preset_xgo": "XGO-Duck"
 }

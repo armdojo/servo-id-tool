@@ -71,8 +71,8 @@
   "center_power_det": "Connect the servo power supply (7.4 V or 12 V, as your servo needs).",
   "released": "Released",
   "log": "Technical log (for support)",
-  "preset_duck": "Microduck",
-  "duck_note": "Microduck joint IDs, as used by the HD-1910 replica builds. The servos are numbered in this order. The preset also ticks the protection box: over-current and over-voltage protection are off from the factory. When all are done, power the servos off and on, then press “Check the chain” to read the IDs and the protection back.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "Joint IDs and names of the microduck-replica build. XGO-Duck uses the same IDs with the legs the other way round: use the XGO-Duck preset for it.",
   "j10": "right hip yaw",
   "j11": "right hip roll",
   "j12": "right hip pitch",
@@ -93,5 +93,11 @@
   "protect_skipped": "protection not changed: not available on this model",
   "col_prot": "Protection",
   "prot_cell": "current {oc} · voltage {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "The servos are numbered in this order. The preset also ticks the protection box: over-current and over-voltage protection are off from the factory. When all are done, power the servos off and on, then press “Check the chain” to read the IDs and the protection back.",
+  "xgo_note": "XGO-Duck joint IDs. microduck-replica uses the same IDs with the legs the other way round.",
+  "xg_left": "left leg",
+  "xg_right": "right leg",
+  "xg_head": "neck and head",
+  "preset_xgo": "XGO-Duck"
 }

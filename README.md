@@ -27,8 +27,10 @@ This tool does the same job in a browser tab, on Windows, macOS, Linux and Chrom
   - Plug in a servo: it gets the next ID (0–253), is switched to 1 Mbps and is read back.
   - The page beeps and says the number. Unplug it, label it, plug in the next one.
   - Presets: 1–6 for an arm, 1–12 for a dog, 1–15 and 1–18.
-- **Microduck preset for HD-1910 builds.**
-  - Numbers the 15 servos in the Microduck joint order: 10–14 right leg, 20–24 left leg, 30–34 neck, head and beak.
+- **Presets for the two HD-1910 duck builds, microduck-replica and XGO-Duck.**
+  - Both number the 15 servos 10–14, 20–24, 30–34, but the legs are the other way round:
+    - microduck-replica: 10–14 right leg, 20–24 left leg, 30–34 neck, head and beak;
+    - XGO-Duck: 10–14 left leg, 20–24 right leg, 30–33 neck and head, 34 mouth.
   - Shows the joint for every ID, so you know what to write on the label.
   - Switches on over-current and over-voltage protection in each servo (register 19, bits 8 and 1). Both are off from the factory; over-temperature stays on.
 - **Finds a servo at any baud rate**: 1 M, 500 k, 250 k, 128 k, 115.2 k, 76.8 k, 57.6 k or 38.4 kbps.
@@ -84,7 +86,7 @@ The code handles boards that echo what they send, resyncs after line noise, and 
 
 ```bash
 node test/test.js                  # 36 checks against simulated servos
-python3 build.py 3                 # writes dist/servo-id-tool.v3.js
+python3 build.py 4                 # writes dist/servo-id-tool.v4.js
 python3 -m http.server 8765 --bind 127.0.0.1
 # open http://localhost:8765/example.html?servo-demo=1   (demo with simulated servos)
 # open http://localhost:8765/example.html                (real board)

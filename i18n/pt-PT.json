@@ -71,8 +71,8 @@
   "center_power_det": "Ligue a fonte de alimentação dos servos (7,4 V ou 12 V, conforme o seu servo).",
   "released": "Libertado",
   "log": "Registo técnico (para o suporte)",
-  "preset_duck": "Microduck",
-  "duck_note": "IDs das articulações do Microduck, tal como usados pelas réplicas com HD-1910. Os servos são numerados por esta ordem. A predefinição também marca a caixa da proteção: as proteções contra sobrecorrente e sobretensão vêm desligadas de fábrica. Quando terminar, desligue e volte a ligar os servos e clique em «Verificar a cadeia» para ler de novo os IDs e a proteção.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "IDs e nomes das articulações da réplica microduck-replica. O XGO-Duck usa os mesmos IDs com as pernas trocadas: para ele, use a predefinição XGO-Duck.",
   "j10": "anca direita, rotação",
   "j11": "anca direita, lateral",
   "j12": "anca direita, frente/trás",
@@ -93,5 +93,11 @@
   "protect_skipped": "proteção sem alterações: não disponível neste modelo",
   "col_prot": "Proteção",
   "prot_cell": "corrente {oc} · tensão {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "Os servos são numerados por esta ordem. A predefinição também marca a caixa da proteção: as proteções contra sobrecorrente e sobretensão vêm desligadas de fábrica. Quando terminar, desligue e volte a ligar os servos e clique em «Verificar a cadeia» para ler de novo os IDs e a proteção.",
+  "xgo_note": "IDs das articulações do XGO-Duck. A microduck-replica usa os mesmos IDs com as pernas trocadas.",
+  "xg_left": "perna esquerda",
+  "xg_right": "perna direita",
+  "xg_head": "pescoço e cabeça",
+  "preset_xgo": "XGO-Duck"
 }

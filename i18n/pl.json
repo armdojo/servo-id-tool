@@ -71,8 +71,8 @@
   "center_power_det": "Podłącz zasilacz serw (7,4 V lub 12 V, zależnie od serwa).",
   "released": "Zwolniono",
   "log": "Log techniczny (dla pomocy technicznej)",
-  "preset_duck": "Microduck",
-  "duck_note": "ID przegubów Microducka, takie jak w replikach na HD-1910. Serwa są numerowane w tej kolejności. Ten zakres zaznacza też pole ochrony: zabezpieczenie nadprądowe i nadnapięciowe jest fabrycznie wyłączone. Po zakończeniu wyłącz i włącz serwa, a potem kliknij „Sprawdź łańcuch”, aby odczytać ID i ochronę.",
+  "preset_duck": "microduck-replica",
+  "duck_note": "ID i nazwy przegubów repliki microduck-replica. XGO-Duck używa tych samych ID, ale z zamienionymi nogami: do niego wybierz zakres XGO-Duck.",
   "j10": "prawe biodro, obrót",
   "j11": "prawe biodro, na boki",
   "j12": "prawe biodro, przód/tył",
@@ -93,5 +93,11 @@
   "protect_skipped": "ochrona bez zmian: niedostępna w tym modelu",
   "col_prot": "Ochrona",
   "prot_cell": "prąd {oc} · napięcie {ov}",
-  "joint_is": "ID {n} = {joint}"
+  "joint_is": "ID {n} = {joint}",
+  "preset_tail": "Serwa są numerowane w tej kolejności. Ten zakres zaznacza też pole ochrony: zabezpieczenie nadprądowe i nadnapięciowe jest fabrycznie wyłączone. Po zakończeniu wyłącz i włącz serwa, a potem kliknij „Sprawdź łańcuch”, aby odczytać ID i ochronę.",
+  "xgo_note": "ID przegubów XGO-Duck. microduck-replica używa tych samych ID, ale z zamienionymi nogami.",
+  "xg_left": "lewa noga",
+  "xg_right": "prawa noga",
+  "xg_head": "szyja i głowa",
+  "preset_xgo": "XGO-Duck"
 }
